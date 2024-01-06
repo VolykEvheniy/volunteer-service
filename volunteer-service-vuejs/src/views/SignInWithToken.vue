@@ -1,0 +1,135 @@
+<template>
+  <div class="container">
+
+    <div class="row">
+      <div class="col-12 justify-content-center d-flex flex-row pt-5">
+        <div id="signin-div" class="flex-item border">
+          <h2 class="pt-4 pl-4">Вхід за Токеном</h2>
+          <form @submit="signin" class="pt-4 pl-4 pr-4">
+            <div class="form-group">
+              <label class="token-label">Токен</label>
+              <input
+                  type="text"
+                  class="form-control full-width-input"
+                  v-model="token"
+                  required
+              />
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-2 py-0">
+              Увійти
+              <div
+                  v-if="loading"
+                  class="spinner-border spinner-border-sm"
+                  role="status"
+              >
+                <span class="sr-only">Завантаження...</span>
+              </div>
+            </button>
+          </form>
+          <hr />
+          <p class="text-center">
+            <router-link
+                :to="{ name: 'Signin' }"
+                class="btn btn-dark text-center mx-auto px-5 py-1 mb-2"
+            >Вхід для адміністратора</router-link
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "SignInWithToken",
+  props: ["baseURL"],
+  data() {
+    return {
+      token: null,
+      loading: null,
+    };
+  },
+  methods: {
+    async signin(e) {
+      e.preventDefault();
+      this.loading = true;
+
+      const user = {
+        token: this.token,
+      };
+
+      await axios
+          .post(`${this.baseURL}user/militarySignin`, user)
+          .then((res) => {
+            localStorage.setItem("token", res.data.token);
+            localStorage.setItem("username", res.data.userName);
+            this.$emit("fetchData");
+            this.$router.push({ name: "Home" });
+          })
+          .catch((err) => {
+            swal({
+              text: "Не вдалося увійти в систему!",
+              icon: "error",
+              closeOnClickOutside: false,
+            });
+            console.log(err);
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+    },
+  },
+  mounted() {
+    this.loading = false;
+  },
+};
+</script>
+
+
+<style scoped>
+.btn-dark {
+  background-color: #6c757d;
+  color: #fff;
+  font-size: 0.875rem;
+  border-radius: 0.25rem;
+  border-color: transparent;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+  border-color: transparent;
+  border-radius: 0.25rem;
+}
+
+#signin-div {
+  background-color: #f8f9fa;
+  padding: 2rem;
+  margin: auto;
+  width: 60%;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  color: #6c757d;
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.full-width-input {
+  width: 100%;
+}
+
+.token-label {
+  font-size: 1.2em;
+}
+
+@media only screen and (min-width: 992px) {
+  #signin-div {
+    width: 40%;
+  }
+}
+</style>
